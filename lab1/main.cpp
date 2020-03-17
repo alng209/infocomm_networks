@@ -33,7 +33,8 @@ struct Polynom
 };
 
 Polynom f_poly;
-Polynom g_poly;
+Polynom g_poly; 
+Polynom g_poly_main; // основа
 Polynom m_poly;
 Polynom c_poly;
 Polynom a_poly;
@@ -64,6 +65,7 @@ main(int argc, const char* argv[])
 	}
 	try
 	{
+		g_poly_main = create_polynom(argv[1], true);
 		f_poly = create_polynom(argv[1], true); // для допа 1011 или 1101
 		g_poly = f_poly < 1;
 		g_poly = g_poly + f_poly; // для допа
@@ -74,13 +76,13 @@ main(int argc, const char* argv[])
 		std::cerr << err.what() << "\n";
 		exit(1);
 	}
-	std::cout << "g(x) = " << g_poly;
+	std::cout << "g(x) = " << g_poly_main;
 	std::cout << "m(x) = " << m_poly;
 
-	Polynom tmp_poly = m_poly < g_poly.max_degree;
-	std::cout << "m(x) * x^" << g_poly.max_degree << " = " << tmp_poly;
+	Polynom tmp_poly = m_poly < g_poly_main.max_degree;
+	std::cout << "m(x) * x^" << g_poly_main.max_degree << " = " << tmp_poly;
 
-	c_poly = tmp_poly % g_poly;
+	c_poly = tmp_poly % g_poly_main;
 	std::cout << "c(x) = " << c_poly;
 
 	a_poly = tmp_poly + c_poly;
@@ -96,13 +98,14 @@ main(int argc, const char* argv[])
 	b_poly = a_poly + e_poly; 
 	std::cout << "b(x) = " << b_poly;
 
-	s_poly = b_poly % g_poly;
+	s_poly = b_poly % g_poly_main;
 	std::cout << "s(x) = " << s_poly;
 
 	if (s_poly.length != 0)
 		std::cout << "E = 1\n";
 	else
 		std::cout << "E = 0\n";
+	std::cout << "--------------------------------------\n\n";
 
  	///////////////
 	Polynom tmp_poly_f = m_poly < f_poly.max_degree;
@@ -145,7 +148,7 @@ main(int argc, const char* argv[])
 	{
 		if (get_ones(e_poly_dop_g[i]) % 2 != 0)
 		{
-			Polynom s_tmp_g = (a_poly + e_poly_dop_g[i]) % g_poly;
+			Polynom s_tmp_g = (a_poly_g + e_poly_dop_g[i]) % g_poly;
 			//std::cout <<"-------------------------------\n";
 			//std::cout << "e_dop_g(x) = " << e_poly_dop_g[i];
 			//std::cout << "s_tmp_g(x) = " << s_tmp_g;
@@ -175,8 +178,10 @@ main(int argc, const char* argv[])
 	// std::cout << "af(x) = " << a_poly_f << "\n";
 	for (int i = 0; i < (int)err_null_v_f.size(); i++)
 	{
+		std::cout << "a(x) = " << a_poly_f;
 		std::cout << "e(x) = " << err_null_v_f[i];
 		Polynom s_tmp_f = (a_poly_f + err_null_v_f[i]) % f_poly;
+		std::cout << "b(x) = " << a_poly_f + err_null_v_f[i];
 		std::cout << "s(x) = " << s_tmp_f << "\n";
 	}
 
