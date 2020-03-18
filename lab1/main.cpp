@@ -42,18 +42,27 @@ Polynom e_poly;
 Polynom b_poly;
 Polynom s_poly;
 
+
+/* 
+	Создание полиномов по входному вектору
+*/
 Polynom create_polynom(std::string bits, bool is_g);
 Polynom create_polynom(std::string bits, int k);
-std::ostream& operator<<(std::ostream& os, const Polynom& poly);
-Polynom operator<(const Polynom& a, int deg);
-Polynom operator%(const Polynom& a, const Polynom& b);
-Polynom operator-(const Polynom& a, const Polynom& b);
-Polynom operator+(const Polynom& a, const Polynom& b);
-bool operator==(const Polynom& a, const Polynom& b);
-int C(int n, int m);
-std::vector<Polynom> create_polynom(int len);
-int get_ones(const Polynom& poly);
-Polynom dec_to_bin(int num, int len);
+std::vector<Polynom> create_polynom(int len); 
+
+/*
+	Операторы для работы с полиномами
+*/
+std::ostream& operator<<(std::ostream& os, const Polynom& poly);  // вывод
+Polynom operator<(const Polynom& a, int deg);					  // сдвиг полинома (равноправно умножению на x^deg)
+Polynom operator%(const Polynom& a, const Polynom& b);			  // взятите полинома a модулю b
+Polynom operator-(const Polynom& a, const Polynom& b);			  // вычитание
+Polynom operator+(const Polynom& a, const Polynom& b);			  // сложение
+bool operator==(const Polynom& a, const Polynom& b);			  // проверка на равенство
+
+int C(int n, int m);                                              // бином из n по m (не используется в программе)
+int get_ones(const Polynom& poly);                                // подсчет веса вектора (кол-во единиц в векторе), чтобы нечетное кол-во ошибок (для допа)
+Polynom dec_to_bin(int num, int len);                             // перевод из 10 в 2 систему счисления, чтобы перебрать все возможные ошибки (для допа)
 
 int 
 main(int argc, const char* argv[])
@@ -65,6 +74,7 @@ main(int argc, const char* argv[])
 	}
 	try
 	{
+		// формирования полиномов по входным данным
 		g_poly_main = create_polynom(argv[1], true);
 		f_poly = create_polynom(argv[1], true); // для допа 1011 или 1101
 		g_poly = f_poly < 1;
@@ -79,12 +89,14 @@ main(int argc, const char* argv[])
 	std::cout << "g(x) = " << g_poly_main;
 	std::cout << "m(x) = " << m_poly;
 
+	// формирование c(x) = m(x)*x^r mod g(x)
 	Polynom tmp_poly = m_poly < g_poly_main.max_degree;
 	std::cout << "m(x) * x^" << g_poly_main.max_degree << " = " << tmp_poly;
 
 	c_poly = tmp_poly % g_poly_main;
 	std::cout << "c(x) = " << c_poly;
 
+	// формирование a(x) = m(x)*x^r + c(x)
 	a_poly = tmp_poly + c_poly;
 	std::cout << "a(x) = " << a_poly;
 
@@ -95,9 +107,11 @@ main(int argc, const char* argv[])
 		std::cout << "e has incorrect size\n";
 		exit(1);
 	}
+	// формирования b(x) - вектор после прохождения через канал связи 
+	// (на входе декодера)
 	b_poly = a_poly + e_poly; 
 	std::cout << "b(x) = " << b_poly;
-
+	// формирования Е - решение декордера 
 	s_poly = b_poly % g_poly_main;
 	std::cout << "s(x) = " << s_poly;
 
@@ -107,7 +121,8 @@ main(int argc, const char* argv[])
 		std::cout << "E = 0\n";
 	std::cout << "--------------------------------------\n\n";
 
- 	///////////////
+ 	///////////////Доп задание
+ 	// формирование с(х) для f(x) и g(x)
 	Polynom tmp_poly_f = m_poly < f_poly.max_degree;
 	Polynom tmp_poly_g = m_poly < g_poly.max_degree;
 	//std::cout << "\n----------\nfor f_polynom:\n m(x) * fx^" << f_poly.max_degree << " = " << tmp_poly_f;
@@ -116,13 +131,21 @@ main(int argc, const char* argv[])
 	Polynom c_poly_g = tmp_poly_g % g_poly;
 	//std::cout << "fc(x) = " << c_poly_f;
 
+	// формирование a(х) для f(x) и g(x)
 	Polynom a_poly_f = tmp_poly_f + c_poly_f;
 	Polynom a_poly_g = tmp_poly_g + c_poly_g;
 
 	//std::cout << "fa(x) = " << a_poly_f;
-	int err_null_f = 0;
+
+	// для f(x)
+	int err_null_f = 0; // кол-во векторов ошибок, при котороых Е = 0
+	// формирование всех векторов ошибок заданной длины
+	// т.е длины, равной a(x) (макс.степень + 1)
+	// вектора, которые в 10 с.с.ч от 1 до 2^(макс.степень + 1)
 	std::vector<Polynom> e_poly_dop_f = create_polynom(a_poly_f.length);
-	std::vector<Polynom> err_null_v_f;
+
+	// вектора ошибок, при которых решение декодера Е = 0
+	std::vector<Polynom> err_null_v_f; 
 	for (int i = 0; i < (int)e_poly_dop_f.size(); i++)
 	{
 		if (get_ones(e_poly_dop_f[i]) % 2 != 0)
@@ -141,6 +164,7 @@ main(int argc, const char* argv[])
 
 	}
 
+	// аналогично для g(x)
 	int err_null_g = 0;
 	std::vector<Polynom> e_poly_dop_g = create_polynom(a_poly_g.length);
 	std::vector<Polynom> err_null_v_g;
@@ -162,6 +186,7 @@ main(int argc, const char* argv[])
 
 	}
 
+	// наглядный вывод векторов ошибок, при которых Е = 0
 	std::cout << "\n\nm(x) = " << m_poly;
  	std::cout << "f(x) = " << f_poly;
  	std::cout << "g(x) = " << g_poly;
